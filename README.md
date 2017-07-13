@@ -1,7 +1,7 @@
 # Node-Service1
 My first attempt at creating a RESTful Node.js Web Servcice
 
-##Current Features:
+## Current Features:
 
 ### GET Root:
 Navigating to this url will return a response that you have successfully accessed this Node.js application
