@@ -2,6 +2,8 @@
 
 // Variables
     var express = require("express");
+    var bodyParser = require('body-parser');
+    //var methodOverride = require('method-override');
     var url = require("url");
     var filesys = require("fs");
 
@@ -19,13 +21,104 @@
         "active" : true
     }
 
+// Use Methods
+
+    app.use(bodyParser.json());
+    //app.use(methodOverride());
+
+// Error Handling
+    app.use(function(err, req, res, next){
+
+        var stackStr = err.stack;
+        var stackArr = stackStr.split('\n');
+        var stackJSON = {};
+
+        for(var i = 0; i < stackArr.length; i++){
+            stackJSON[ `stack${i}`] = stackArr[i];
+        }
+        // var stackJSON = {}, counter = 0;
+
+        // stackStr.forEach(function(str) {
+        //     stackJSON[`stack${counter}`] = stackStr[counter];
+        // }, this);
+        
+        // Create New Error Entry
+        var errorMessage = {
+            "timeStamp" : new Date().toUTCString(),
+            "request" : {
+                "header" : req.header,
+                "ip" : req.ip
+            },
+            "name" : err.name,
+            "message" : err,
+            "stack" : stackJSON,
+        } 
+
+        filesys.readFile('errors.json', 'utf8', function(err, data){
+            if(err){ console.log("Error Reading File: errors.json"); }
+
+            data = JSON.parse(data);
+            // Update Error Stats
+            var errorStat = errorMessage.name;
+            if(data.stats[errorStat] == null){
+                data.stats[errorStat] = {
+                    "lastOccurance" : new Date().toUTCString(),
+                    "errorCount" : 1
+                }
+            }else{
+                var eCount = data.stats[errorStat].errorCount + 1;
+                data.stats[errorStat] = {
+                    "lastOccurance" : new Date().toUTCString(),
+                    "errorCount" : eCount
+                }
+            }
+
+            // Add Error Log
+            var errorName = new Date().valueOf();
+
+            data.log[errorName] = errorMessage;
+            
+
+            filesys.writeFile('errors.json', JSON.stringify(data), 'utf8', function(err, data){
+                if(err){ console.log(`Error Writing File: errors.json`); }
+            });
+            
+        });
+
+        console.log(errorMessage.name == "SyntaxError");
+
+        var userMessage = {};
+        var messageDate = new Date();
+        switch(errorMessage.name){
+            case "SyntaxError":
+                userMessage = {
+                    "Time_Stamp" : errorMessage.timeStamp,
+                    "Error_Name" : errorMessage.name,
+                    "Error_Description" :  `An Syntax Error Occured, please review sent data`,
+                    "Reference Code" : messageDate.valueOf()
+                }
+                break;
+            default:
+                userMessage = {
+                    "Time_Stamp" : errorMessage.timeStamp,
+                    "Error_Name" : errorMessage.name,
+                    "Error_Description" :  `An unknown error occured, please contact the server admin`,
+                    "Reference Code" : messageDate.valueOf()
+                }
+        }
+
+        console.log(`${messageDate.toUTCString()} - [Error] - Error Logged: ${messageDate.valueOf()}`)
+        res.status(500).jsonp(userMessage);
+    });
+
+    
 // Methods
 
     // GET root
     app.get(`${root}/`, function(req, res){
         var now = new Date().toUTCString();
         console.log(`${now} - [Server] [GET] - Root Request`);
-        res.send( "Hello Out There!" );
+        res.send( `Connected to Node.js Server at: http://localhost:${server.address().port}` );
     });
 
     // GET list of users
@@ -90,7 +183,7 @@
     });
 
 
-    // POST new user
+    // POST new user from newUser variable
     app.post(`${root}/userslist/addUser`, function(req,res){
         filesys.readFile(jsonUsers, 'utf8', function(err, data){
             var j = JSON.parse(data);
@@ -105,6 +198,47 @@
             // Update New User ID 
             newUser.id = userCount;
             j[`user${userCount}`] = newUser;
+            console.log( j );
+            res.status(200).send( JSON.stringify( j ));
+        });
+    });
+
+    // POST new user from request
+    app.post(`${root}/userslist/addUser/json`, function(req,res){
+        try{
+            if(!req.is('json')) {
+                res.jsonp(400, {error: 'Bad request'});
+                return;
+            }
+
+            res.setHeader('Content-Type', 'application/json');
+
+            
+            var body = req.body;
+        }catch(e){ 
+            res.status(500).jsonp({ error : `JSON Parse Error - ${e}`});
+            return;
+         }
+        var nUser = {
+            "name" : body.name,
+            "id" : -1,
+            "user_data" : "",
+            "active" : true
+        }
+
+        filesys.readFile(jsonUsers, 'utf8', function(err, data){
+            var j = JSON.parse(data);
+
+            var userCount = 0;
+            var user = j[`user${userCount}`];
+            // Look for last user
+            while(user != null){
+                userCount++;
+                user = j[`user${userCount}`];
+            }
+            // Update New User ID 
+            nUser.id = userCount;
+            j[`user${userCount}`] = nUser;
             console.log( j );
             res.status(200).send( JSON.stringify( j ));
         });
@@ -132,12 +266,23 @@
         });
     });
 
-
 var server = app.listen(8080, function () {  
     var port = server.address().port;
     var time = new Date().toUTCString();
 
-
+    filesys.exists('errors.json', function(exists){
+        if(!exists){ 
+            var jsonTemplate = {
+                "stats" : {},
+                "log" : {}
+            }
+            filesys.writeFile('errors.json', JSON.stringify(jsonTemplate), (err, data) => { 
+                if(err){
+                    console.log(err);
+                } else { console.log("Errors.json file created"); }
+             }); 
+        }
+    });
 
     console.log(`${time} - [Server] - Server Started `);
     console.log(`${time} - [Server] - Server listening on port: ${port}`);
