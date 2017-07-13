@@ -3,7 +3,6 @@
 // Variables
     var express = require("express");
     var bodyParser = require('body-parser');
-    //var methodOverride = require('method-override');
     var url = require("url");
     var filesys = require("fs");
 
@@ -24,7 +23,6 @@
 // Use Methods
 
     app.use(bodyParser.json());
-    //app.use(methodOverride());
 
 // Error Handling
     app.use(function(err, req, res, next){
@@ -84,8 +82,6 @@
             });
             
         });
-
-        console.log(errorMessage.name == "SyntaxError");
 
         var userMessage = {};
         var messageDate = new Date();
@@ -239,7 +235,8 @@
             // Update New User ID 
             nUser.id = userCount;
             j[`user${userCount}`] = nUser;
-            console.log( j );
+            
+            console.log(`${new Date().toUTCString()} - [Server] - User Added ${ JSON.stringify(nUser) }`)
             res.status(200).send( JSON.stringify( j ));
         });
     });
