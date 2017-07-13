@@ -1,0 +1,14 @@
+{
+    "name": "node-app",
+    "description": "Node app with steve",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "express": "^4.15.3"
+    },
+    "devDependencies": {
+        "http-proxy-middleware": "^0.17.4"
+    }
+}
