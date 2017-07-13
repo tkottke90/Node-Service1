@@ -17,6 +17,14 @@ module.exports = {
     },
 
     /**
+     * Method takes a JSON object and verifies that the data included matches all parts of the template
+     * @param {JSON} data - JSON data to be checked
+     * @param {string} templateURL - Link to file that contains a template of JSON Object
+     * @param {string} templateName (Optional) - name of template in use
+     */
+    validateTemplate(data, templateURL, templateName){},
+
+    /**
      * Get List of Children
      */
     getChildren(){

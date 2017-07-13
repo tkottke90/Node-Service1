@@ -1,13 +1,13 @@
 {
-    "user1" : {
+    "user0" : {
         "name" : "thomas",
-        "id" : 1,
+        "id" : 0,
         "user_data" : "",
-        "active" : true
+        "active" : false
     },
-    "user2" : {
+    "user1" : {
         "name" : "steve",
-        "id" : 2,
+        "id" : 1,
         "user_data" : "",
         "active" : true
     }

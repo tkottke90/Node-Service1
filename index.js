@@ -31,6 +31,9 @@
     // GET list of users
     app.get(`${root}/userslist`, function(req, res){
         var now = new Date().toUTCString();
+
+        console.log(req.ip);
+
         console.log(`${now} - [Server] [GET] - Get Users Request Submitted`);
 
         filesys.readFile(jsonUsers, 'utf8', function(err, data){
@@ -42,7 +45,7 @@
     });
 
     // GET details of user based on id
-    app.get(`${root}/userslist/:id`, function(req, res){
+    app.get(`${root}/userslist/getid/:id`, function(req, res){
         var now = new Date().toUTCString();
         
         filesys.readFile(jsonUsers, "utf8" , function(err, data){
@@ -63,13 +66,36 @@
     });
 
     // GET users who are active
+    app.get(`${root}/userslist/active`, function(req, res){
+        var now = new Date().toUTCString();
+        console.log(`${now} - [Server] [GET] - Get Active Users Request`);
+
+        filesys.readFile(jsonUsers, 'utf8', function(err, data){
+            data = JSON.parse(data);
+            var activeU = [];
+
+            var counter = 0;
+            var user = data[`user${counter}`];
+            while(user != null){
+                if(user.active){
+                    activeU.push(user)
+                }
+                counter++
+                var user = data[`user${counter}`];
+            }
+
+            console.log(activeU);
+            res.send(activeU);
+        });
+    });
+
 
     // POST new user
-    app.post('/userlist/addUser', function(req,res){
+    app.post(`${root}/userslist/addUser`, function(req,res){
         filesys.readFile(jsonUsers, 'utf8', function(err, data){
             var j = JSON.parse(data);
 
-            var userCount = 1;
+            var userCount = 0;
             var user = j[`user${userCount}`];
             // Look for last user
             while(user != null){
@@ -85,7 +111,7 @@
     });
     
     // PUT user status to opposite of current status (Active - Inactive) - used in production to deactivate user account on delete rather than just delete
-    app.put('/userlist/deactUser/:id', function(req, res){
+    app.put(`${root}/userslist/deactUser/:id`, function(req, res){
         filesys.readFile(jsonUsers, 'utf8', function(err, data){
             data = JSON.parse( data );
             data[`user${req.params.id}`].active = !data[`user${req.params.id}`].active;
@@ -96,7 +122,7 @@
     });
 
     // DELETE remove existing user
-    app.delete('/userlist/deleteUser/:id', function(req, res){
+    app.delete(`${root}/userslist/deleteUser/:id`, function(req, res){
         filesys.readFile(jsonUsers, 'utf8', function(err, data){
             data = JSON.parse( data );
             delete data[`user${req.params.id}`];
