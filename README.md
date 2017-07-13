@@ -23,10 +23,15 @@ Returns information about which users are currently listed as active.  Created t
 
 http://localhost:8080/userslist/active => Returns: { Active Users }
 
-### POST new user server (not users.json)
+### POST new user from server (not users.json)
 Pulls in users.json, then adds new user to list.  User is currently defined in service
 
 http://localhost:8080/userslist/addUser => Returns: { updated users list }
+
+### POST new user from http request
+Gets JSON object from POST request,  pulls in the users.json and adds the new user to a runtime copy of the users.json
+
+http://localhost8080/userslist/addUser/json => Returns: { updated users list }
 
 ### PUT users active status to active or inactive
 Switches the active status on a user to true or false based on if the user is active or inactive
@@ -37,6 +42,9 @@ http://localhost:8080/userslist/deactUser/:id => Returns: { updated users list }
 Pulls in users.json, then deletes user based on id parameter.  Change is not currently saved to users.json.
 
 http://localhost:8080/userslist/deleteUser/:id => Returns: "Notification of Deleted User"
+
+### Error Handling
+Created error messenger using Expressjs's error function.  Initially created to handle Syntax Errors with JSON Send tin POST Request.  left the feature open to allow for additional error reporting in the future.  The function creates a unqiue error id and sends a JSON response to user with more details about the error as well as that id if they needed to contact the server admin
 
 ## References:
 
